@@ -5,8 +5,7 @@ __pycache__/
 *.db
 *.sqlite3
 *.csv
+data/raw/
 data/processed/
 models/
-.env
 .ipynb_checkpoints/
-.DS_Store
