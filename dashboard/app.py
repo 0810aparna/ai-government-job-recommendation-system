@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import matplotlib.pyplot as plt
+
+# ---------------- PAGE CONFIG ---------------- #
 
 st.set_page_config(
     page_title="AI Government Job Recommendation System",
@@ -9,99 +10,75 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 AI Government Job Recommendation System")
+# ---------------- LOAD DATA ---------------- #
+
+jobs_df = pd.read_csv("data/sample_jobs.csv")
+
+# ---------------- TITLE ---------------- #
+
+st.title("AI-Powered Government Job Recommendation System")
 
 st.markdown(
-    "Analyze jobs, salaries, skills, and government schemes using AI analytics."
+    "Interactive NLP & ML-based dashboard for job recommendations and skill analytics."
 )
 
-# DATABASE CONNECTION
-conn = sqlite3.connect("data/processed/analytics.db")
+# ---------------- SIDEBAR ---------------- #
 
-jobs_df = pd.read_sql("SELECT * FROM jobs", conn)
-salaries_df = pd.read_sql("SELECT * FROM salaries", conn)
-schemes_df = pd.read_sql("SELECT * FROM government_schemes", conn)
+st.sidebar.header("Filter Jobs")
 
-# SIDEBAR
-st.sidebar.header("Navigation")
+selected_location = st.sidebar.selectbox(
+    "Select Location",
+    ["All"] + list(jobs_df["location"].unique())
+)
 
-show_jobs = st.sidebar.checkbox("Show Jobs Dataset")
-show_salary = st.sidebar.checkbox("Show Salary Dataset")
-show_schemes = st.sidebar.checkbox("Show Government Schemes")
+# ---------------- FILTER DATA ---------------- #
 
-# METRICS
-st.subheader("Project Overview")
+filtered_df = jobs_df.copy()
 
-col1, col2, col3 = st.columns(3)
+if selected_location != "All":
+    filtered_df = filtered_df[
+        filtered_df["location"] == selected_location
+    ]
 
-col1.metric("Jobs", len(jobs_df))
-col2.metric("Salary Records", len(salaries_df))
-col3.metric("Schemes", len(schemes_df))
+# ---------------- DISPLAY DATA ---------------- #
 
-# DATASETS
-if show_jobs:
-    st.subheader("Jobs Dataset")
-    st.dataframe(jobs_df.head(20))
+st.subheader("Available Jobs")
 
-if show_salary:
-    st.subheader("Salary Dataset")
-    st.dataframe(salaries_df.head(20))
+st.dataframe(filtered_df)
 
-if show_schemes:
-    st.subheader("Government Schemes")
-    st.dataframe(schemes_df.head(20))
+# ---------------- SALARY ANALYSIS ---------------- #
 
-# SALARY DISTRIBUTION
 st.subheader("Salary Distribution")
 
-fig, ax = plt.subplots(figsize=(10, 5))
+fig, ax = plt.subplots(figsize=(8, 4))
 
-salaries_df["salary_in_usd"].hist(
-    bins=30,
-    ax=ax
+ax.bar(
+    filtered_df["job_title"],
+    filtered_df["salary"]
 )
 
-ax.set_title("Salary Distribution")
-ax.set_xlabel("Salary")
-ax.set_ylabel("Frequency")
+plt.xticks(rotation=45)
 
 st.pyplot(fig)
 
-# TOP JOB TITLES
-st.subheader("Top Job Roles")
+# ---------------- SKILLS ---------------- #
 
-if "job_title" in salaries_df.columns:
+st.subheader("Skills Overview")
 
-    top_roles = salaries_df["job_title"].value_counts().head(10)
+all_skills = []
 
-    fig2, ax2 = plt.subplots(figsize=(10, 5))
+for skills in filtered_df["skills"]:
+    skill_list = skills.split(",")
+    all_skills.extend([s.strip() for s in skill_list])
 
-    top_roles.plot(kind="bar", ax=ax2)
+skill_counts = pd.Series(all_skills).value_counts()
 
-    ax2.set_title("Top Roles")
+st.bar_chart(skill_counts)
 
-    st.pyplot(fig2)
+# ---------------- FOOTER ---------------- #
 
-# SKILL SEARCH
-st.subheader("AI Skill Search")
+st.markdown("---")
 
-user_skill = st.text_input(
-    "Enter Skill",
-    placeholder="python"
+st.markdown(
+    "Built using Python, Streamlit, NLP, and Machine Learning concepts."
 )
-
-if user_skill:
-
-    filtered_jobs = jobs_df[
-        jobs_df["extracted_skills"].str.contains(
-            user_skill,
-            case=False,
-            na=False
-        )
-    ]
-
-    st.write(f"Found {len(filtered_jobs)} matching jobs.")
-
-    st.dataframe(filtered_jobs.head(20))
-
-conn.close()
