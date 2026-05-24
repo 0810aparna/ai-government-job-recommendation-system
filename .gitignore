@@ -1,11 +1,25 @@
-venv/
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.db
-*.sqlite3
-*.csv
+
+# Virtual environment
+venv/
+.env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Large datasets
 data/raw/
 data/processed/
+
+# Database files
+*.db
+*.sqlite3
+
+# Models
 models/
-.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db
