@@ -65,6 +65,9 @@ This system helps users:
 - Output: Salary Prediction System
 
 ---
+## Live Dashboard
+
+[Open Live Dashboard](https://ai-government-job-dashboard.streamlit.app)
 
 ## How to Run
 
